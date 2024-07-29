@@ -1,9 +1,10 @@
+/*
+Copyright © 2024 Rodrigo Weber Sesterheim <rodrigowsesterheim@gmail.com>
+*/
 package main
 
-import (
-	"schedule.com/schedule"
-)
+import "github.com/RodrigoSester/schedule-cli/cmd"
 
 func main() {
-	schedule.Execute()
+	cmd.Execute()
 }

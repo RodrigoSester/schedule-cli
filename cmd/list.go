@@ -22,7 +22,9 @@ type Schedule struct {
 }
 
 var (
-	orderBy string
+	fOrderBy string
+	fGroupBy string
+	fGroupByValue string
 
 	listScheduleCmd = &cobra.Command{
 		Use:     "list",
@@ -39,7 +41,9 @@ var (
 )
 
 func init() {
-	listScheduleCmd.Flags().StringVarP(&orderBy, "order-by", "o", "", "Order by name, date or time")
+	listScheduleCmd.Flags().StringVarP(&fOrderBy, "order-by", "o", "", "Order by name, date or time")
+	listScheduleCmd.Flags().StringVarP(&fGroupBy, "group-by", "g", "", "Group by name or date")
+	listScheduleCmd.Flags().StringVarP(&fGroupByValue, "group-by-value", "gv", "", "Group by value")
 
 	viper.BindPFlag("order-by", listScheduleCmd.Flags().Lookup("order-by"))
 
@@ -57,6 +61,23 @@ func listSchedules() (ScheduleList, error) {
 
 	if err := yaml.Unmarshal(data, &schedules); err != nil {
 		return ScheduleList{}, err
+	}
+
+	if (fGroupBy != "") {
+		fmt.Println("Group by: ", fGroupBy)
+
+		var schedulesFiltered ScheduleList
+
+		for idx, schedule := range schedules.Schedules.Tasks {
+			if (fGroupBy == "date" && schedule.Date == fGroupByValue) {
+				fmt.Printf("Schedule index %v: %v\n", idx, schedule)
+				schedulesFiltered.Schedules.Tasks = append(schedulesFiltered.Schedules.Tasks, schedule)
+			}
+		}
+
+		fmt.Println("Schedules Filtered: ", schedulesFiltered)
+
+		return schedulesFiltered, nil
 	}
 
 	fmt.Println("Schedules: ", schedules.Schedules.Tasks)

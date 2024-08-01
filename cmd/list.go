@@ -2,15 +2,23 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
+type ScheduleList struct {
+	Schedules struct {
+		Tasks []Schedule `yaml:"tasks"`
+	}
+}
+
 type Schedule struct {
-	Name string
-	Date string
-	Time string
+	Name string `yaml:"name"`
+	Date string `yaml:"date"`
+	Time string `yaml:"time"`
 }
 
 var (
@@ -38,21 +46,20 @@ func init() {
 	rootCmd.AddCommand(listScheduleCmd)
 }
 
-func listSchedules() ([]Schedule, error) {
-	schedules := []Schedule{
-		{
-			Name: "Work",
-			Date: "2021-02-01",
-			Time: "10:00",
-		},
-		{
-			Name: "Sleep",
-			Date: "2021-02-01",
-			Time: "22:00",
-		},
+func listSchedules() (ScheduleList, error) {
+	data, err := os.ReadFile("./schedules.yml")
+
+	if err != nil {
+		return ScheduleList{}, err
 	}
 
-	fmt.Println("Schedules: ", schedules)
+	var schedules ScheduleList
+
+	if err := yaml.Unmarshal(data, &schedules); err != nil {
+		return ScheduleList{}, err
+	}
+
+	fmt.Println("Schedules: ", schedules.Schedules.Tasks)
 
 	return schedules, nil
 }

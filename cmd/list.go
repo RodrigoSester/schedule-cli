@@ -4,26 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/RodrigoSester/schedule-cli/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
-type ScheduleList struct {
-	Schedules struct {
-		Tasks []Schedule `yaml:"tasks"`
-	}
-}
-
-type Schedule struct {
-	Name string `yaml:"name"`
-	Date string `yaml:"date"`
-	Time string `yaml:"time"`
-}
-
 var (
-	fOrderBy string
-	fGroupBy string
+	fOrderBy      string
+	fGroupBy      string
 	fGroupByValue string
 
 	listScheduleCmd = &cobra.Command{
@@ -43,33 +32,33 @@ var (
 func init() {
 	listScheduleCmd.Flags().StringVarP(&fOrderBy, "order-by", "o", "", "Order by name, date or time")
 	listScheduleCmd.Flags().StringVarP(&fGroupBy, "group-by", "g", "", "Group by name or date")
-	listScheduleCmd.Flags().StringVarP(&fGroupByValue, "group-by-value", "gv", "", "Group by value")
+	listScheduleCmd.Flags().StringVarP(&fGroupByValue, "group-by-value", "v", "", "Group by value")
 
 	viper.BindPFlag("order-by", listScheduleCmd.Flags().Lookup("order-by"))
 
 	rootCmd.AddCommand(listScheduleCmd)
 }
 
-func listSchedules() (ScheduleList, error) {
+func listSchedules() (*types.ScheduleList, error) {
 	data, err := os.ReadFile("./schedules.yml")
 
 	if err != nil {
-		return ScheduleList{}, err
+		return &types.ScheduleList{}, err
 	}
 
-	var schedules ScheduleList
+	var schedules *types.ScheduleList
 
 	if err := yaml.Unmarshal(data, &schedules); err != nil {
-		return ScheduleList{}, err
+		return &types.ScheduleList{}, err
 	}
 
-	if (fGroupBy != "") {
+	if fGroupBy != "" {
 		fmt.Println("Group by: ", fGroupBy)
 
-		var schedulesFiltered ScheduleList
+		var schedulesFiltered types.ScheduleList
 
 		for idx, schedule := range schedules.Schedules.Tasks {
-			if (fGroupBy == "date" && schedule.Date == fGroupByValue) {
+			if fGroupBy == "date" && schedule.Date == fGroupByValue {
 				fmt.Printf("Schedule index %v: %v\n", idx, schedule)
 				schedulesFiltered.Schedules.Tasks = append(schedulesFiltered.Schedules.Tasks, schedule)
 			}
@@ -77,7 +66,7 @@ func listSchedules() (ScheduleList, error) {
 
 		fmt.Println("Schedules Filtered: ", schedulesFiltered)
 
-		return schedulesFiltered, nil
+		return &schedulesFiltered, nil
 	}
 
 	fmt.Println("Schedules: ", schedules.Schedules.Tasks)

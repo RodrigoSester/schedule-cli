@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"encoding/json"
 	"github.com/RodrigoSester/schedule-cli/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -40,7 +40,7 @@ func init() {
 }
 
 func listSchedules() (*types.ScheduleList, error) {
-	data, err := os.ReadFile("./schedules.yml")
+	data, err := os.ReadFile("./schedules.json")
 
 	if err != nil {
 		return &types.ScheduleList{}, err
@@ -48,7 +48,7 @@ func listSchedules() (*types.ScheduleList, error) {
 
 	var schedules *types.ScheduleList
 
-	if err := yaml.Unmarshal(data, &schedules); err != nil {
+	if err := json.Unmarshal(data, &schedules); err != nil {
 		return &types.ScheduleList{}, err
 	}
 

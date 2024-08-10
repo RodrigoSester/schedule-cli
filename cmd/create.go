@@ -3,7 +3,12 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
+	"encoding/json"
+	"github.com/RodrigoSester/schedule-cli/configs"
+	"github.com/RodrigoSester/schedule-cli/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -35,21 +40,55 @@ func init() {
 func createSchedule() (string, error) {
 	name := viper.GetString("name")
 	date := viper.GetString("date")
-	time := viper.GetString("time")
 
 	if name == "" {
 		return "", errors.New("name is required")
 	}
 
-	if date == "" {
-		return "", errors.New("date is required")
+	
+
+	_, err := os.OpenFile(configs.FilePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+
+	if err != nil {
+		return "", err
 	}
 
-	if time == "" {
-		return "", errors.New("time is required")
+	data, err := os.ReadFile(configs.FilePath)
+
+	if err != nil {
+		return "", err
 	}
 
-	fmt.Printf("Schedule %s created on %s at %s\n", name, date, time)
+	schedules := &types.ScheduleList{}
 
-	return name, nil
+	if err := json.Unmarshal(data, &schedules); err != nil {
+		return "", err
+	}
+
+	os.Remove(configs.FilePath)
+
+	file, err := os.Create(configs.FilePath)
+
+	if err != nil {
+		return "", err
+	}
+
+	newSchedule := types.Schedule{
+		Name: name,
+		Date: date,
+	}
+
+	schedules.Schedules.Tasks = append(schedules.Schedules.Tasks, newSchedule)
+
+	jsonTaskContent, err := json.Marshal(&schedules)
+
+	if err != nil {
+		return "", err
+	}
+
+	io.WriteString(file, string(jsonTaskContent))
+
+	fmt.Printf("Schedule %s created on %s\n", name, date)
+
+	return newSchedule.ToString(), nil
 }

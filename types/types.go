@@ -1,15 +1,19 @@
 package types
 
 type Schedule struct {
-	Name      string `yaml:"name"`
-	Date      string `yaml:"date"`
-	Time      string `yaml:"time"`
-	Type      string `yaml:"type"`
-	Frequency string `yaml:"frequency"`
+	Name      string `json:"name"`
+	Date      string `json:"date,omitempty"`
+	Time      string `json:"time,omitempty"`
+	Type      string `json:"type"`
+	Frequency string `json:"frequency"`
+}
+
+func (s *Schedule) ToString() string {
+	return "Schedule"
 }
 
 type ScheduleList struct {
 	Schedules struct {
-		Tasks []Schedule `yaml:"tasks"`
+		Tasks []Schedule `json:"tasks"`
 	}
 }
